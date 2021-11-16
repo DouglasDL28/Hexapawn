@@ -41,6 +41,9 @@ class Hexapawn(object):
         player = 0 if player_one else 1
         new_state = np.copy(node.state)
 
+        # TODO: mostrar resultado de la acción en estado
+        # implica eliminar piezas cuando sea necesario
+
         new_node = Node(
             state=new_state,
             parent=node,
@@ -62,9 +65,9 @@ class Hexapawn(object):
         for piece in node.state[player]:
             p_x, p_y = piece[0], piece[1]
 
-            if self.in_board(p_y+delta_y, p_x) and board[p_y+delta_y][p_x]==0:
+            if self.in_board(p_x, p_y+delta_y) and board[p_y+delta_y][p_x]==0:
                 # vertical move
-                actions.append((p_y+delta_y, p_x))
+                actions.append((p_x, p_y+delta_y))
 
             for opp_piece in node.state[(player + 1) % 2]:
                 opp_x, opp_y = opp_piece[0], opp_piece[1]
