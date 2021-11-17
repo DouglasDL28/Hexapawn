@@ -86,7 +86,12 @@ class HexapawnMTC():
 
     def rollout_policy(self, possible_moves):
         # TODO Agregar cosas de Paulo
-        return possible_moves[np.random.randint(len(possible_moves))]
+        size = len(possible_moves)
+        U = np.random.random(size=1)
+        for idx in range(size):
+            if U >= idx/size and U < (idx+1)/size:
+                return possible_moves[idx]
+
 
     def _tree_policy(self):
 
