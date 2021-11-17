@@ -67,7 +67,7 @@ class HexapawnMTC():
 
             current_rollout_state = HexapawnMTC(
                 state, parent=self, parent_action=action, player_one=not current_rollout_state.player_one)
-            # current_rollout_state = current_rollout_state.move(action)
+
         return current_rollout_state.game_result()
 
     def is_fully_expanded(self):
@@ -77,7 +77,7 @@ class HexapawnMTC():
         self._number_of_visits += 1.
         self._results[result] += 1.
         if self.parent:
-            self.parent.backpropagate(-result)
+            self.parent.backpropagate(result)
 
     def best_child(self, c_param=0.1):
         choices_weights = [(c.win_lose_difference() / c.number_of_visits()) + c_param *
@@ -85,7 +85,7 @@ class HexapawnMTC():
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):
-
+        # TODO Agregar cosas de Paulo
         return possible_moves[np.random.randint(len(possible_moves))]
 
     def _tree_policy(self):
@@ -109,7 +109,7 @@ class HexapawnMTC():
             reward = v.rollout()
             v.backpropagate(reward)
 
-        return self.best_child(c_param=0.)
+        return self.best_child(c_param=0.1)
 
     def get_legal_actions(self):
         """ Gets player actions in a given state. """
@@ -198,6 +198,12 @@ class HexapawnMTC():
             return -1
         else:
             return 1
+
+    def print_winner(self):
+        if self.game_result() == -1:
+            print("BRAVOOO GANASTE")
+        else:
+            print("Gano la maquina :(")
 
     def move(self, action):
         player_index = 0 if self.player_one else 1

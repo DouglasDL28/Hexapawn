@@ -44,15 +44,7 @@ if __name__ == "__main__":
         [(0, 0), (1, 0), (2, 0)],
         [(0, 2), (1, 2), (2, 2)]
     ])
-    # game.player_one = False
-    won = game.best_action()
-    # won.player_one = False
-    # print(won._untried_actions)
-    # print(won.get_legal_actions())
-    print(won.parent_action)
-    print(won.print_board())
-    print("aca")
-    input("")
+
     game_running = True
     while game_running:
         selected_option = get_index_option(menu)
@@ -65,16 +57,32 @@ if __name__ == "__main__":
                     # Seleccionamos movimiento
                     action_selected = game.select_legal_action()
                     game.state = game.move(action_selected)
-                    safe = [i.copy() for i in game.state.copy()]
+                    if game.is_terminal_node():
+                        game.print_winner()
+                        game_running = False
+                        break
+                    print("ANTES DE SIMULAR")
+                    game.print_board()
+                    simulation = HexapawnMTC(
+                        state=[i.copy() for i in game.state.copy()],
+                        player_one=False
+                    )
                     # Simular turno del oponente
-                    # print(game.state)
-                    won = game.best_action()
-                    game.state = safe
+                    # Jalamos nuestra mejor acción
+                    won = simulation.best_action()
+
+                    # Toggle turn
                     game.player_one = False
-                    print(won.parent_action)
-                    print(game.move(won.parent_action))
-                    # input()
+
                     game.state = game.move(won.parent_action)
+
+                    print("DESPUES DE SIMULAR")
+                    game.print_board()
+                    if game.is_terminal_node():
+                        game.print_winner()
+                        game_running = False
+                        break
+                    game.player_one = True
                     action_option = 2
                 # Imprimimos acciones
                 elif action_option == 1:
