@@ -89,7 +89,7 @@ class HexapawnMTC():
         size = len(possible_moves)
         U = np.random.random(size=1)
         for idx in range(size):
-            if U >= idx/size and U < (idx+1)/size:
+            if U > idx/size and U <= (idx+1)/size:
                 return possible_moves[idx]
 
 
