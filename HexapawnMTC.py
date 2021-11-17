@@ -1,5 +1,15 @@
 import numpy as np
 from collections import defaultdict
+from prettytable import PrettyTable
+
+
+def int_input(text):
+    while True:
+        i = input(text)
+        try:
+            return int(i)
+        except:
+            print("Ingrese un valor númerico")
 
 
 def any_lambda(iterable, function):
@@ -7,7 +17,8 @@ def any_lambda(iterable, function):
 
 
 class HexapawnMTC():
-    def __init__(self, state, parent=None, parent_action=None):
+    def __init__(self, state, parent=None, parent_action=None, player_one=True):
+        self.player_one = player_one
         self.state = state
         self.parent = parent
         self.parent_action = parent_action
@@ -18,7 +29,7 @@ class HexapawnMTC():
         self._results[-1] = 0
         self._untried_actions = None
         self._untried_actions = self.untried_actions()
-        self.player_one = True
+
         return
 
     def win_lose_difference(self):
@@ -38,8 +49,9 @@ class HexapawnMTC():
 
         action = self._untried_actions.pop()
         next_state = self.move(action)
+
         child_node = HexapawnMTC(
-            next_state, parent=self, parent_action=action)
+            next_state, parent=self, parent_action=action, player_one=not self.player_one)
 
         self.children.append(child_node)
         return child_node
@@ -47,12 +59,15 @@ class HexapawnMTC():
     def rollout(self):
         current_rollout_state = self
 
-        while not current_rollout_state.is_terminal_node():
-
+        while not (current_rollout_state.is_terminal_node()):
             possible_moves = current_rollout_state.get_legal_actions()
 
             action = self.rollout_policy(possible_moves)
-            current_rollout_state = current_rollout_state.move(action)
+            state = current_rollout_state.move(action)
+
+            current_rollout_state = HexapawnMTC(
+                state, parent=self, parent_action=action, player_one=not current_rollout_state.player_one)
+            # current_rollout_state = current_rollout_state.move(action)
         return current_rollout_state.game_result()
 
     def is_fully_expanded(self):
@@ -62,7 +77,7 @@ class HexapawnMTC():
         self._number_of_visits += 1.
         self._results[result] += 1.
         if self.parent:
-            self.parent.backpropagate(result)
+            self.parent.backpropagate(-result)
 
     def best_child(self, c_param=0.1):
         choices_weights = [(c.win_lose_difference() / c.number_of_visits()) + c_param *
@@ -90,6 +105,7 @@ class HexapawnMTC():
         for i in range(simulation_no):
 
             v = self._tree_policy()
+
             reward = v.rollout()
             v.backpropagate(reward)
 
@@ -123,14 +139,12 @@ class HexapawnMTC():
 
         return actions
 
-    def get_state_board(self, state: np.ndarray):
-        board = np.array([
+    def get_state_board(self, state):
+        board = [
             [0, 0, 0, ],
             [0, 0, 0, ],
             [0, 0, 0, ],
-        ],
-            dtype=np.uint8
-        )
+        ]
 
         # Player 1
         for pair in state[0]:
@@ -156,9 +170,11 @@ class HexapawnMTC():
         first_won = any_lambda(last_row, lambda x: x == 1)
         actions = self.get_legal_actions()
         if self.player_one:
-            second_won = second_won or len(actions) == 0
+            second_won = second_won or len(
+                actions) == 0 or len(self.state[0]) == 0
         else:
-            first_won = first_won or len(actions) == 0
+            first_won = first_won or len(
+                actions) == 0 or len(self.state[1]) == 0
         return first_won or second_won
 
     def game_result(self):
@@ -186,7 +202,7 @@ class HexapawnMTC():
     def move(self, action):
         player_index = 0 if self.player_one else 1
         opponent_index = 1 if self.player_one else 0
-        state = np.copy(self.state)
+        state = [i.copy() for i in self.state.copy()]
         player_state = state[player_index]
         opponent_state = state[opponent_index]
         previous_position = action[0]
@@ -202,11 +218,54 @@ class HexapawnMTC():
                             0], opponent_position[1]
                         # If the new position is the one eaten we remove it
                         if new_position[0] == oponnent_current_x and new_position[1] == oponnent_current_y:
-                            opponent_state = np.delete(
-                                opponent_state, index_opponent
-                            )
+                            opponent_state.pop(index_opponent)
 
                 player_state[index] = new_position
         state[player_index] = player_state
         state[opponent_index] = opponent_state
+        # Toggle turn
+        # self.player_one = not self.player_one
         return state
+
+    def print_actions(self):
+        x = PrettyTable()
+        board = [list(row) for row in self.get_state_board(self.state)]
+        actions = self.get_legal_actions()
+        for action in actions:
+            x_action, y_action = action[1][0], action[1][1]
+            if board[y_action][x_action] != 0:
+                board[y_action][x_action] = "X"
+            else:
+                board[y_action][x_action] = "*"
+
+        x.field_names = ["  ", "    ", "   "]
+        for row in board:
+            x.add_row(row)
+
+        print(x)
+        print("")
+
+    def print_board(self):
+        x = PrettyTable()
+        x.field_names = ["  ", "    ", "   "]
+        for row in self.get_state_board(self.state):
+            x.add_row(row)
+        # board = [list(row) for row in self.get_state_board(self.state)]
+        print(x)
+        print("")
+
+    def select_legal_action(self):
+        actions = self.get_legal_actions()
+        size = len(actions)
+        while True:
+            print("Las coredenada se van x, y")
+            for index, action in enumerate(actions):
+                origin, destiantion = action[0], action[1]
+                print(str(index+1), ") ", "Moverse de (", str(origin[0]), ", ", str(
+                    origin[1]), ") hacia (", str(destiantion[0]), ", ", str(destiantion[1]), ")")
+            option = int_input(
+                "Seleccione el número correspondiente a la acción: ")
+            if option > 0 and option <= size:
+                return actions[option-1]
+            else:
+                print("Seleccione una opción válida.")

@@ -3,6 +3,8 @@
 import numpy as np
 
 from Node import Node
+from pprint import pprint
+
 
 class Hexapawn(object):
     """ Hexapawn game class. Contains game state and methods. """
@@ -18,12 +20,15 @@ class Hexapawn(object):
             action=None
         )
 
+    def print_board(self):
+        pprint(self.get_state_board(self.state))
+
     def get_state_board(self, state: np.ndarray):
         board = np.array([
-                [0, 0, 0,],
-                [0, 0, 0,],
-                [0, 0, 0,],
-            ],
+            [0, 0, 0, ],
+            [0, 0, 0, ],
+            [0, 0, 0, ],
+        ],
             dtype=np.uint8
         )
 
@@ -34,10 +39,10 @@ class Hexapawn(object):
         # Player 2
         for pair in state[1]:
             board[pair[1]][pair[0]] = 2
-    
+
         return board
 
-    def result(self, node:Node, action:np.ndarray, player_one):
+    def result(self, node: Node, action: np.ndarray, player_one):
         player = 0 if player_one else 1
         new_state = np.copy(node.state)
 
@@ -52,7 +57,7 @@ class Hexapawn(object):
 
         return new_node
 
-    def actions(self, node:Node, player_one:bool):
+    def actions(self, node: Node, player_one: bool):
         """ Gets player actions in a given state. """
 
         actions = []
@@ -65,35 +70,33 @@ class Hexapawn(object):
         for piece in node.state[player]:
             p_x, p_y = piece[0], piece[1]
 
-            if self.in_board(p_x, p_y+delta_y) and board[p_y+delta_y][p_x]==0:
+            if self.in_board(p_x, p_y+delta_y) and board[p_y+delta_y][p_x] == 0:
                 # vertical move
                 actions.append((p_x, p_y+delta_y))
 
             for opp_piece in node.state[(player + 1) % 2]:
                 opp_x, opp_y = opp_piece[0], opp_piece[1]
 
-                if opp_x==p_x+1 or opp_x==p_x-1:
-                    if opp_y==p_y+delta_y:
+                if opp_x == p_x+1 or opp_x == p_x-1:
+                    if opp_y == p_y+delta_y:
                         # can eat a piece
                         actions.append((opp_x, opp_y))
-                
-                            
+
         return actions
 
-    def move(self, coord:np.ndarray, dest_coord:np.ndarray):
-        return
-    
-    
-    def check_direction(self, coord:np.ndarray, node:Node, delta_x:int, delta_y:int, valid_dests:list=[]):
+    def move(self, coord: np.ndarray, dest_coord: np.ndarray):
         return
 
-    def in_board(self, X:int, Y:int):
-        if X<=2 and X>=0 and Y<=2 and Y>=0:
+    def check_direction(self, coord: np.ndarray, node: Node, delta_x: int, delta_y: int, valid_dests: list = []):
+        return
+
+    def in_board(self, X: int, Y: int):
+        if X <= 2 and X >= 0 and Y <= 2 and Y >= 0:
             return True
-        
+
         return False
 
-    def is_terminal(self, node:Node):
+    def is_terminal(self, node: Node):
         """ Check if game ends. """
 
         return
