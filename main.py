@@ -75,6 +75,7 @@ if __name__ == "__main__":
                     game.player_one = False
 
                     game.state = game.move(won.parent_action)
+                    game.player_one = True
 
                     print("DESPUES DE SIMULAR")
                     game.print_board()
@@ -82,7 +83,6 @@ if __name__ == "__main__":
                         game.print_winner()
                         game_running = False
                         break
-                    game.player_one = True
                     action_option = 2
                 # Imprimimos acciones
                 elif action_option == 1:
